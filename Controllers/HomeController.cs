@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ namespace FlashCards.Controllers
             if (result != null)
                 return Ok(result);
             result = await FetchExamplesFromOxford(word);
+
             await AddResultToDb(result, word, column).ConfigureAwait(false);
             return Ok(result);
         }
@@ -58,10 +60,10 @@ namespace FlashCards.Controllers
             var column = "translations";
             var result = await FetchValueFromDb<IList<TranslationDto>>(word, column);
             if (result != null)
-                return Ok(result);
+                return Ok(result.Take(10).ToList());
             result = await FetchTranslationsFromTureng(word);
             await AddResultToDb(result, word, column);
-            return Ok(result);
+            return Ok(result.Take(10).ToList());
         }
 
         [HttpPost("add-new")]

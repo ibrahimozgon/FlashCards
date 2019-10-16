@@ -1,8 +1,115 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+<div class="row">
+    <div id="words-parent-content" style="display: flex" class="col-12 justify-content-center align-items-center">
+        <div id="start-content" style="display: flex; width: 100%; min-height: 500px;background-color: lightgreen" class="justify-content-center align-items-center">
+                <p id="start-btn" style="font-size: 10vw;cursor: pointer;">START</p>
+            </div>
+        <div id="words-content" style="display: none; width: 100%; min-height: 200px;background-color: aqua" class="justify-content-center align-items-center">
+            <p style="color: white;font-size: 5vw" id="current-word"></p>
+        </div>
+    </div>
+    <div id="words-buttons-content" style="display: flex" class="col-12 justify-content-center">
+        <div id="i-know-btn" style="background-color: lightgreen; color: white; border-radius:5px; cursor: pointer" class="col-4  mr-1 mt-3 d-flex justify-content-center align-items-center">
+            <p>I know</p>
+        </div>
+        <div id="see-usages-btn" style="background-color: blue;color: white; border-radius:5px; cursor: pointer" class="col-4 mr-1 mt-3 d-flex justify-content-center align-items-center">
+            <p>See Usages</p>
+        </div>
+        <div id="translate-btn" style="background-color: crimson;color: white; border-radius:5px; cursor: pointer" class="col-4 mt-3 d-flex justify-content-center align-items-center">
+            <p>I don't know</p>
+        </div>
+    </div>
+    <div id="usages-content" class="col-12 mt-4" style="display: none">
+        <ul class="list-group list-group-flush" id="usages-content-items">
+        </ul>
+    </div>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <div id="translations-content" class="col-12 mt-4" style="display: none">
+        <ul class="list-group list-group-flush" id="translations-content-items">
+        </ul>
+    </div>
+    <div id="next-button-content" style="display: none" class="col-12 justify-content-center">
+        <div id="next-btn" style="background-color: #1fa229; color: white; border-radius:5px; cursor: pointer" class="col-12 mr-1 mt-3 d-flex justify-content-center align-items-center">
+            <p>NEXT</p>
+        </div>
+    </div>
 </div>
+@section Scripts{
+    <script>
+        $("#start-btn").click(function () {
+            $("#start-content").fadeOut(500,
+                function () {
+                    $.get("/get-random", function (data) {
+                        $("#current-word").html(data.word);
+                        $("#words-content").css("display", "flex");
+                    });
+                });
+        });
+
+        $("#i-know-btn").click(function () {
+            $.get("/get-random", function (data) {
+                $("#current-word").html(data.word);
+                hideAll();
+                $("#words-content").css("display", "flex");
+                $("#words-buttons-content").css("display", "flex");
+                $("#next-button-content").css("display", "none");
+
+            });
+        });
+        $("#see-usages-btn").click(function () {
+            var word = $("#current-word").html();
+            $.get("/get-examples?word=" + word,
+                function (data) {
+                    $("#usages-content-items").empty();
+                    data.forEach(function (item) {
+                        item.definitions.forEach(function (definition) {
+                            $("#usages-content-items")
+                                .append("<li class='list-group-item list-group-item-primary' style='font-style:bold'>" +
+                                    definition +
+                                    "</li>");
+                        });
+                        item.examples.forEach(function (example) {
+                            $("#usages-content-items")
+                                .append("<li class='list-group-item pl-5' style='font-style:italic'>" +
+                                    example +
+                                    "</li>");
+                        });
+                    });
+                    hideAll();
+                    $("#words-buttons-content").css("display", "none");
+                    $("#next-button-content").css("display", "flex");
+                    $("#usages-content").show();
+                }).fail(function () {
+                    hideAll();
+                    alert("we couldn't find a suitable result for your request, sorry");
+                });
+        });
+        $("#translate-btn").click(function () {
+            var word = $("#current-word").html();
+            $.get("/get-translations?word=" + word, function (data) {
+                $("#translations-content-items").empty();
+                data.forEach(function (item) {
+                    $("#translations-content-items").append("<li class='list-group-item ' style='font-style:italic'>" + item.translation + "</li>");
+                });
+                hideAll();
+                $("#words-buttons-content").css("display", "none");
+                $("#next-button-content").css("display", "flex");
+                $("#translations-content").show();
+            }).fail(function () {
+                hideAll();
+                alert("we couldn't find a suitable result for your request, sorry");
+            });
+        });
+        $("#next-btn").click(function () {
+            $("#i-know-btn").click();
+        });
+
+        function hideAll() {
+            //$("#words-parent-content").css("display", "none");
+            $("#translations-content").hide();
+            $("#usages-content").hide();
+        }
+    </script>
+}
