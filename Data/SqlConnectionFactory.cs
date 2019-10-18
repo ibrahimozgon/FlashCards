@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
@@ -10,7 +11,30 @@ namespace FlashCards.Data
 
         public SqlConnectionFactory(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("flash-cards");
+            var databaseUrl =
+#if DEBUG
+                configuration.GetValue<string>("flash-cards-database-url");
+#endif
+#if !DEBUG
+            configuration.GetValue<string>("DATABASE_URL");
+#endif
+            var databaseUri = new Uri(databaseUrl);
+            var userInfo = databaseUri.UserInfo.Split(':');
+
+            var builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = databaseUri.Host,
+                Port = databaseUri.Port,
+                Username = userInfo[0],
+                Password = userInfo[1],
+                Database = databaseUri.LocalPath.TrimStart('/'),
+#if DEBUG
+                SslMode = SslMode.Require,
+                TrustServerCertificate = true,
+#endif
+            };
+
+            _connectionString = builder.ToString();
         }
 
         public IDbConnection GetConnection()
