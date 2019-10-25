@@ -7,7 +7,7 @@
             <p style="color: white;font-size: 5vw" id="current-word"></p>
         </div>
     </div>
-    <div id="words-buttons-content" style="display: flex" class="col-12 justify-content-center">
+    <div id="words-buttons-content" style="display: none" class="col-12 justify-content-center">
         <div id="i-know-btn" style="background-color: lightgreen; color: white; border-radius:5px; cursor: pointer" class="col-4  mr-1 mt-3 d-flex justify-content-center align-items-center">
             <p>I know</p>
         </div>
@@ -41,6 +41,7 @@
                     $.get("/get-random", function (data) {
                         $("#current-word").html(data.word);
                         $("#words-content").css("display", "flex");
+                        $("#words-buttons-content").css("display", "flex");
                     });
                 });
         });
